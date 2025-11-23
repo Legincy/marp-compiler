@@ -1,4 +1,5 @@
 package pl.peth.common.scanner;
+
 import pl.peth.common.Token;
 import pl.peth.common.tokens.ITokenWrapper;
 import java.io.BufferedReader;
@@ -45,10 +46,13 @@ public class Scanner implements ITokenWrapper {
                 }
 
                 char currentChar = charAtPosition();
+
+                /*
                 System.out.println("DEBUG: Iteration " + iterations +
                         ", pos=" + position +
                         ", char='" + currentChar + "'" +
                         " (ASCII: " + (int)currentChar + ")");
+                */
 
                 if(Character.isWhitespace(currentChar)){
                     if (currentChar == '\n') {

@@ -80,4 +80,8 @@ public class Token implements ITokenWrapper {
             default -> "UNKNOWN_TOKEN";
         };
     }
+
+    public byte getType() {
+        return type;
+    }
 }
