@@ -1,3 +1,3 @@
-multiply(x: int, y: int) -> int {
+fn multiply(x: int, y: int) -> int {
     return x * y
 }
