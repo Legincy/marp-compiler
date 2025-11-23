@@ -1,12 +1,13 @@
 package pl.peth.common.scanner;
 
-import pl.peth.common.Token;
-import pl.peth.common.tokens.ITokenWrapper;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import pl.peth.common.Token;
+import pl.peth.common.tokens.ITokenWrapper;
 
 public class Scanner implements ITokenWrapper {
     private String input;
@@ -175,6 +176,7 @@ public class Scanner implements ITokenWrapper {
 
     private byte checkKeyword(String lexeme) {
         return  switch(lexeme) {
+            case "fn" -> FN;
             case "int" -> TYPE_INT;
             case "return" -> RETURN;
             default -> IDENTIFIER;
