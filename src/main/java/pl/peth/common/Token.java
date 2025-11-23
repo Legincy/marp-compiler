@@ -26,7 +26,11 @@ public class Token implements ITokenWrapper {
         return String.format("Token(type=BYTE(%s) [%s], lexeme='%s', line=%d, position=%d)", type, typeAsByte, lexeme, line, position);
     }
 
-    String getTokenName(byte type) {
+    public String getTokenName() {
+        return getTokenName(type);
+    }
+
+    public static String getTokenName(byte type) {
         return switch (type) {
             //IBasicTokens
             case ITokenWrapper.NO_TYPE -> "NO_TYPE";
@@ -69,6 +73,7 @@ public class Token implements ITokenWrapper {
             case ITokenWrapper.OPEN_BRACE -> "OPEN_BRACE";
             case ITokenWrapper.CLOSE_BRACE -> "CLOSE_BRACE";
             case ITokenWrapper.ARROW -> "ARROW";
+            case ITokenWrapper.FN -> "FN";
             default -> "UNKNOWN_TOKEN";
         };
     }
@@ -83,5 +88,17 @@ public class Token implements ITokenWrapper {
 
     public byte getType() {
         return type;
+    }
+
+    public String getLexeme() {
+        return lexeme;
+    }
+
+    public int getLine() {
+        return line;
+    }
+
+    public int getPosition() {
+        return position;
     }
 }
