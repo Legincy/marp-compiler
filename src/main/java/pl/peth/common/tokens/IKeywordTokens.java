@@ -6,5 +6,5 @@ interface IKeywordTokens {
     byte IF = 32;
     byte WHILE = 33;
     byte ELSE = 34;
-
+    byte ELSE_IF = 35;
 }

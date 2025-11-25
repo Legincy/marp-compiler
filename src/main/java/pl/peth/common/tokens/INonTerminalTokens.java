@@ -7,4 +7,8 @@ interface INonTerminalTokens {
     byte BLOCK = 103;
     byte RETURN_STATEMENT = 104;
     byte FUNCTION = 105;
+    byte IF_STATEMENT = 106;
+    byte ELSE_IF_STATEMENT = 107;
+    byte ELSE_STATEMENT = 108;
+    byte CONDITION = 109;
 }

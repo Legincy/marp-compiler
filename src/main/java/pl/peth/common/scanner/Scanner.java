@@ -169,6 +169,36 @@ public class Scanner implements ITokenWrapper {
             case ':':
                 position++;
                 return new Token(COLON, ":", startLine, position);
+            case '=':
+                position++;
+                if (charAtPosition() == '=') {
+                    position++;
+                    return new Token(EQUAL, "==", startLine, position);
+                }
+                error("Unexpected '=' - did you mean '=='?");
+                return null;
+            case '!':
+                position++;
+                if (charAtPosition() == '=') {
+                    position++;
+                    return new Token(NOT_EQUAL, "!=", startLine, position);
+                }
+                error("Unexpected '!' - did you mean '!='?");
+                return null;
+            case '<':
+                position++;
+                if (charAtPosition() == '=') {
+                    position++;
+                    return new Token(LESS_EQUAL, "<=", startLine, position);
+                }
+                return new Token(LESS_THAN, "<", startLine, position);
+            case '>':
+                position++;
+                if (charAtPosition() == '=') {
+                    position++;
+                    return new Token(GREATER_EQUAL, ">=", startLine, position);
+                }
+                return new Token(GREATER_THAN, ">", startLine, position);
             default:
                 return null;
         }
@@ -179,6 +209,10 @@ public class Scanner implements ITokenWrapper {
             case "fn" -> FN;
             case "int" -> TYPE_INT;
             case "return" -> RETURN;
+            case "if" -> IF;
+            case "else" -> ELSE;
+            case "elseif" -> ELSE_IF;
+            case "while" -> WHILE;
             default -> IDENTIFIER;
         };
     }

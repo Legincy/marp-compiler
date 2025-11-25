@@ -16,7 +16,8 @@ class TestParserFiles {
             "examples/scanner/add.mp",
             "examples/scanner/multiply.mp",
             "examples/scanner/divide.mp",
-            "examples/scanner/complex.mp"
+            "examples/scanner/complex.mp",
+            "examples/scanner/condition.mp"
         };
 
         for (String filename : testFiles) {

@@ -33,47 +33,60 @@ public class Token implements ITokenWrapper {
     public static String getTokenName(byte type) {
         return switch (type) {
             //IBasicTokens
-            case ITokenWrapper.NO_TYPE -> "NO_TYPE";
-            case ITokenWrapper.EOF_TOKEN -> "EOF_TOKEN";
-            case ITokenWrapper.EPSILON -> "EPSILON";
-            case ITokenWrapper.START -> "START";
-            case ITokenWrapper.NOT_FINAL -> "NOT_FINAL";
+            case NO_TYPE -> "NO_TYPE";
+            case EOF_TOKEN -> "EOF_TOKEN";
+            case EPSILON -> "EPSILON";
+            case START -> "START";
+            case NOT_FINAL -> "NOT_FINAL";
             //IExpressionTokens
-            case ITokenWrapper.EXPRESSION -> "EXPRESSION";
-            case ITokenWrapper.RIGHT_EXPRESSION -> "RIGHT_EXPRESSION";
-            case ITokenWrapper.TERM -> "TERM";
-            case ITokenWrapper.RIGHT_TERM -> "RIGHT_TERM";
-            case ITokenWrapper.FACTOR -> "FACTOR";
-            case ITokenWrapper.FUNCTION_CALL -> "FUNCTION_CALL";
-            case ITokenWrapper.EXPRESSION_LIST -> "EXPRESSION_LIST";
+            case EXPRESSION -> "EXPRESSION";
+            case RIGHT_EXPRESSION -> "RIGHT_EXPRESSION";
+            case TERM -> "TERM";
+            case RIGHT_TERM -> "RIGHT_TERM";
+            case FACTOR -> "FACTOR";
+            case FUNCTION_CALL -> "FUNCTION_CALL";
+            case EXPRESSION_LIST -> "EXPRESSION_LIST";
             //IIdentifierTokens
-            case ITokenWrapper.IDENTIFIER -> "IDENTIFIER";
-            case ITokenWrapper.TYPE_INT -> "TYPE_INT";
+            case IDENTIFIER -> "IDENTIFIER";
+            case TYPE_INT -> "TYPE_INT";
             //IKeywordTokens
-            case ITokenWrapper.RETURN -> "RETURN";
+            case FN -> "FN";
+            case RETURN -> "RETURN";
+            case IF -> "IF";
+            case ELSE -> "ELSE";
+            case ELSE_IF -> "ELSE_IF";
             //ILiteralTokens
-            case ITokenWrapper.NUMERIC -> "NUMERIC";
+            case NUMERIC -> "NUMERIC";
             //INonTerminalTokens
-            case ITokenWrapper.PROGRAM -> "PROGRAM";
-            case ITokenWrapper.FUNCTION -> "FUNCTION";
-            case ITokenWrapper.PARAMETER_LIST -> "PARAMETER_LIST";
-            case ITokenWrapper.PARAMETER -> "PARAMETER";
-            case ITokenWrapper.BLOCK -> "BLOCK";
-            case ITokenWrapper.RETURN_STATEMENT -> "RETURN_STATEMENT";
+            case PROGRAM -> "PROGRAM";
+            case FUNCTION -> "FUNCTION";
+            case PARAMETER_LIST -> "PARAMETER_LIST";
+            case PARAMETER -> "PARAMETER";
+            case BLOCK -> "BLOCK";
+            case RETURN_STATEMENT -> "RETURN_STATEMENT";
+            case IF_STATEMENT -> "IF_STATEMENT";
+            case ELSE_IF_STATEMENT -> "ELSE_IF_STATEMENT";
+            case ELSE_STATEMENT -> "ELSE_STATEMENT";
+            case CONDITION -> "CONDITION";
             //IOperatorTokens
-            case ITokenWrapper.PLUS -> "PLUS";
-            case ITokenWrapper.MINUS -> "MINUS";
-            case ITokenWrapper.MULTIPLY -> "MULTIPLY";
-            case ITokenWrapper.DIVIDE -> "DIVIDE";
+            case PLUS -> "PLUS";
+            case MINUS -> "MINUS";
+            case MULTIPLY -> "MULTIPLY";
+            case DIVIDE -> "DIVIDE";
+            case EQUAL -> "EQUAL";
+            case NOT_EQUAL -> "NOT_EQUAL";
+            case GREATER_THAN -> "GREATER_THAN";
+            case LESS_THAN -> "LESS_THAN";
+            case GREATER_EQUAL -> "GREATER_EQUAL";
+            case LESS_EQUAL -> "LESS_EQUAL";
             //ISeparatorTokens
-            case ITokenWrapper.COMMA -> "COMMA";
-            case ITokenWrapper.COLON -> "COLON";
-            case ITokenWrapper.OPEN_PARENTHESIS -> "OPEN_PARENTHESIS";
-            case ITokenWrapper.CLOSE_PARENTHESIS -> "CLOSE_PARENTHESIS";
-            case ITokenWrapper.OPEN_BRACE -> "OPEN_BRACE";
-            case ITokenWrapper.CLOSE_BRACE -> "CLOSE_BRACE";
-            case ITokenWrapper.ARROW -> "ARROW";
-            case ITokenWrapper.FN -> "FN";
+            case COMMA -> "COMMA";
+            case COLON -> "COLON";
+            case OPEN_PARENTHESIS -> "OPEN_PARENTHESIS";
+            case CLOSE_PARENTHESIS -> "CLOSE_PARENTHESIS";
+            case OPEN_BRACE -> "OPEN_BRACE";
+            case CLOSE_BRACE -> "CLOSE_BRACE";
+            case ARROW -> "ARROW";
             default -> "UNKNOWN_TOKEN";
         };
     }
@@ -81,7 +94,7 @@ public class Token implements ITokenWrapper {
     String getTokenName(int type) {
         return switch (type) {
             //IConstantTokens
-            case  ITokenWrapper.UNDEFINED -> "UNDEFINED";
+            case  UNDEFINED -> "UNDEFINED";
             default -> "UNKNOWN_TOKEN";
         };
     }

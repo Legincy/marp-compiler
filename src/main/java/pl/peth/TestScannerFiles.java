@@ -1,12 +1,13 @@
 package pl.peth;
 
-import pl.peth.common.Token;
-import pl.peth.common.scanner.Scanner;
-import pl.peth.common.tokens.ITokenWrapper;
 import java.io.File;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+
+import pl.peth.common.Token;
+import pl.peth.common.scanner.Scanner;
+import pl.peth.common.tokens.ITokenWrapper;
 
 class TestScannerFiles implements ITokenWrapper{
     public static void main(String[] args) {
@@ -16,7 +17,8 @@ class TestScannerFiles implements ITokenWrapper{
                 "examples/scanner/add.mp",
                 "examples/scanner/multiply.mp",
                 "examples/scanner/divide.mp",
-                "examples/scanner/complex.mp"
+                "examples/scanner/complex.mp",
+                "examples/scanner/condition.mp"
         };
 
         for (String filename : testFiles) {

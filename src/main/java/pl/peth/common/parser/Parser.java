@@ -47,7 +47,7 @@ public class Parser implements ITokenWrapper {
     }
 
     private boolean statements(SyntaxTree node) {
-        if(check(EOF_TOKEN)) {
+        if(check(EOF_TOKEN) || check(CLOSE_BRACE)) {
             return true;
         }
 
@@ -61,6 +61,14 @@ public class Parser implements ITokenWrapper {
     private boolean statement(SyntaxTree node) {
         if (check(FN)) {
             return function(node.insertChild(FUNCTION));
+        }
+
+        if (check(IF)){
+            return ifStatement(node.insertChild(IF_STATEMENT));
+        }
+
+        if (check(RETURN)){
+            return returnStatement(node.insertChild(RETURN_STATEMENT));
         }
 
         return expression(node.insertChild(EXPRESSION));
@@ -153,7 +161,7 @@ public class Parser implements ITokenWrapper {
             return false;
         }
 
-        if(!returnStatement(node.insertChild(RETURN_STATEMENT))) {
+        if(!blockStatements(node)){
             return false;
         }
 
@@ -163,6 +171,129 @@ public class Parser implements ITokenWrapper {
         }
 
         return true;
+    }
+
+    private boolean blockStatements(SyntaxTree node) {
+        if(check(CLOSE_BRACE) || check(EOF_TOKEN)) {
+            return true;
+        }
+
+        if(!statement(node)){
+            return false;
+        }
+
+        return blockStatements(node);
+    }
+
+    private boolean ifStatement(SyntaxTree node) {
+        if(!match(IF, node)){
+            error("Expected 'if' keyword.");
+            return false;
+        }
+
+        if(!match(OPEN_PARENTHESIS, node)){
+            error("Expected '(' after 'if' keyword.");
+            return false;
+        }
+
+        if(!condition(node.insertChild(CONDITION))){
+            return false;
+        }
+
+        if(!match(CLOSE_PARENTHESIS, node)){
+            error("Expected ')' after condition.");
+            return false;
+        }
+
+        if(!block(node.insertChild(BLOCK))){
+            error("Expected block after 'if' condition.");
+            return false;
+        }
+
+        while(check(ELSE_IF)){
+            if(!elseIfStatement(node.insertChild(ELSE_IF_STATEMENT))){
+                return false;
+            }
+        }
+
+        if(check(ELSE)){
+            if(!elseStatement(node.insertChild(ELSE_STATEMENT))){
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean elseIfStatement(SyntaxTree node) {
+        if(!match(ELSE_IF, node)){
+            error("Expected 'elseif' keyword.");
+            return false;
+        }
+
+        if(!match(OPEN_PARENTHESIS, node)){
+            error("Expected '(' after 'elseif' keyword.");
+            return false;
+        }
+
+        if(!condition(node.insertChild(CONDITION))){
+            return false;
+        }
+
+        if(!match(CLOSE_PARENTHESIS, node)){
+            error("Expected ')' after condition.");
+            return false;
+        }
+
+        if(!block(node.insertChild(BLOCK))){
+            error("Expected block after 'elseif' condition.");
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean elseStatement(SyntaxTree node) {
+        if(!match(ELSE, node)){
+            error("Expected 'else' keyword.");
+            return false;
+        }
+
+        if(!block(node.insertChild(BLOCK))){
+            error("Expected block after 'else' keyword.");
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean condition(SyntaxTree node) {
+        if(!expression(node.insertChild(EXPRESSION))) {
+            return false;
+        }
+
+        if(matchComparisonOperator(node)) {
+            if(!expression(node.insertChild(EXPRESSION))) {
+                return false;
+            }
+        } else {
+            error("Expected comparison operator in condition.");
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean matchComparisonOperator(SyntaxTree node) {
+        return switch(currentToken.getType()) {
+            case EQUAL -> match(EQUAL, node);
+            case NOT_EQUAL -> match(NOT_EQUAL, node);
+            case GREATER_THAN -> match(GREATER_THAN, node);
+            case LESS_THAN -> match(LESS_THAN, node);
+            case GREATER_EQUAL -> match(GREATER_EQUAL, node);
+            case LESS_EQUAL -> match(LESS_EQUAL, node);
+            default -> false; 
+        };
     }
 
     private boolean returnStatement(SyntaxTree node) {
