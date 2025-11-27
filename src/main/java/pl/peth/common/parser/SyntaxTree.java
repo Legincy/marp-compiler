@@ -1,126 +1,133 @@
 package pl.peth.common.parser;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import pl.peth.common.Token;
 
 public class SyntaxTree {
-    private final List<SyntaxTree> childNodes;
-    private final Token token;
+    private final List<SyntaxTree> children;
     private final byte type;
+    private String value;
+    private final Map<String, String> attributes;
 
     public SyntaxTree(byte type) {
         this.type = type;
-        this.token = null;
-        this.childNodes = new ArrayList<>();
+        this.value = null;
+        this.children = new ArrayList<>();
+        this.attributes = new HashMap<>();
     }
 
-    public SyntaxTree(Token token) {
-        this.type = token.getType();
-        this.token = token;
-        this.childNodes = new ArrayList<>();
+    public SyntaxTree(byte type, String value) {
+        this(type);
+        this.value = value;
     }
-
-    public void addChild(SyntaxTree child){
+    
+    public SyntaxTree addChild(SyntaxTree child) {
         if (child != null) {
-            this.childNodes.add(child);
+            children.add(child);
         }
+        return child;
     }
 
-    public SyntaxTree insertChild(byte type) {
+    public SyntaxTree addChild(byte type) {
         SyntaxTree child = new SyntaxTree(type);
-        childNodes.add(child);
+        children.add(child);
         return child;
     }
 
-    public SyntaxTree insertChild(Token token) {
-        SyntaxTree child = new SyntaxTree(token);
-        childNodes.add(child);
+    public SyntaxTree addChild(byte type, String value) {
+        SyntaxTree child = new SyntaxTree(type, value);
+        children.add(child);
         return child;
     }
+    
+    public SyntaxTree withAttribute(String key, String value) {
+        attributes.put(key, value);
+        return this;
+    }
 
+    public String getAttribute(String key) {
+        return attributes.get(key);
+    }
+
+    public boolean hasAttribute(String key) {
+        return attributes.containsKey(key);
+    }
+
+    // === Getters ===
+    
     public byte getType() {
         return type;
     }
 
-    public Token getToken() {
-        return token;
+    public String getValue() {
+        return value;
     }
 
-    public List<SyntaxTree> getChildNodes() {
-        return childNodes;
+    public List<SyntaxTree> getChildren() {
+        return children;
     }
 
     public int getChildCount() {
-        return childNodes.size();
+        return children.size();
     }
 
     public SyntaxTree getChild(int index) {
-        if (index < 0 || index >= childNodes.size()) {
+        if (index < 0 || index >= children.size()) {
             return null;
         }
-        return childNodes.get(index);
+        return children.get(index);
     }
 
-    public String getLexeme() {
-        if (token != null) {
-            return token.getLexeme();
-        }
-        return null;
+    public boolean isLeaf() {
+        return children.isEmpty();
     }
-
-    public boolean isTerminal() {
-        return token != null;
-    }
-
-    public boolean isNonTerminal() {
-        return token == null;
-    }
-
+    
     public void print() {
-        print(0);
+        print("", false );
     }
 
-    private void print(int depth) {
-        for (int i = 0; i < depth; i++) {
-            System.out.print("│   ");
+    private void print(String prefix, boolean isLast) {
+        System.out.print(prefix);
+        System.out.print(isLast ? "└── " : "├── ");
+        
+        System.out.print(Token.getTokenName(type));
+        
+        if (value != null && !value.isEmpty()) {
+            System.out.print("('" + value + "')");
         }
-
-        if(depth > 0){
-            System.out.print("├── ");
+        
+        if (!attributes.isEmpty()) {
+            System.out.print(" {");
+            boolean first = true;
+            for (Map.Entry<String, String> entry : attributes.entrySet()) {
+                if (!first) System.out.print(", ");
+                System.out.print(entry.getKey() + "=" + entry.getValue());
+                first = false;
+            }
+            System.out.print("}");
         }
-
-        System.out.print(Token.getTokenName(getType()));
-
-        if(token != null && !token.getLexeme().isEmpty()){
-            System.out.printf("('%s')", token.getLexeme());
-        }
-
+        
         System.out.println();
 
-        for (SyntaxTree child : childNodes) {
-            child.print(depth + 1);
+        for (int i = 0; i < children.size(); i++) {
+            children.get(i).print(
+                prefix + (isLast ? "    " : "│   "),
+                i == children.size() - 1
+            );
         }
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        toString(sb, 0);
+        sb.append(Token.getTokenName(type));
+        if (value != null) {
+            sb.append("('").append(value).append("')");
+        }
         return sb.toString();
-    }
-
-    private void toString(StringBuilder sb, int depth) {
-        sb.append("  ".repeat(Math.max(0, depth)));
-        sb.append(token.getTokenName());
-        if (token != null && !token.getLexeme().isEmpty()) {
-            sb.append("('").append(token.getLexeme()).append("')");
-        }
-        sb.append("\n");
-
-        for (SyntaxTree child : childNodes) {
-            child.toString(sb, depth + 1);
-        }
     }
 }

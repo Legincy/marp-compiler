@@ -6,6 +6,7 @@ import pl.peth.common.Token;
 import pl.peth.common.scanner.Scanner;
 import pl.peth.common.tokens.ITokenWrapper;
 
+
 public class Parser implements ITokenWrapper {
     private List<Token> tokens;
     private int position;
@@ -21,472 +22,364 @@ public class Parser implements ITokenWrapper {
         this.tokens = scanner.getTokens();
         this.position = 0;
 
-        if(this.tokens == null || this.tokens.isEmpty()) {
+        if (this.tokens == null || this.tokens.isEmpty()) {
             error("No tokens to parse.");
             return null;
         }
 
         this.currentToken = this.tokens.get(0);
+        SyntaxTree program = new SyntaxTree(PROGRAM);
 
-        SyntaxTree syntaxTree = new SyntaxTree(PROGRAM);
-        
-        if(!program(syntaxTree)) {
+        if (!parseProgram(program)) {
             return null;
         }
 
-        if(currentToken.getType() != EOF_TOKEN) {
+        if (currentToken.getType() != EOF_TOKEN) {
             error("Unexpected token after program end: " + currentToken);
             return null;
         }
 
-        return syntaxTree;
+        return program;
     }
 
-    private boolean program(SyntaxTree node) {
-        return statements(node);
-    }
-
-    private boolean statements(SyntaxTree node) {
-        if(check(EOF_TOKEN) || check(CLOSE_BRACE)) {
-            return true;
+    private boolean parseProgram(SyntaxTree node) {
+        while (!check(EOF_TOKEN)) {
+            if (!parseStatement(node)) {
+                return false;
+            }
         }
-
-        if(!statement(node)){
-            return false;
-        }
-
-        return statements(node);
+        return true;
     }
 
-    private boolean statement(SyntaxTree node) {
+    private boolean parseStatement(SyntaxTree parent) {
         if (check(FN)) {
-            return function(node.insertChild(FUNCTION));
+            return parseFunction(parent);
         }
-
-        if (check(IF)){
-            return ifStatement(node.insertChild(IF_STATEMENT));
+        if (check(IF)) {
+            return parseIfStatement(parent);
         }
-
-        if (check(RETURN)){
-            return returnStatement(node.insertChild(RETURN_STATEMENT));
+        if (check(WHILE)) {
+            return parseWhileStatement(parent);
         }
-
-        return expression(node.insertChild(EXPRESSION));
-    }
-
-    private boolean function(SyntaxTree node) {
-        if(!match(FN, node)){
-            error("Expected 'fn' keyword at the beginning of function declaration.");
-            return false;
-        }
-
-        if(!match(IDENTIFIER, node)){
-            error("Expected function name identifier.");
-            return false;
-        }
-
-        if (!match(OPEN_PARENTHESIS, node)){
-            error("Expected '(' after function name.");
-            return false;
-        }
-
-        if(!parameterList(node.insertChild(PARAMETER_LIST))) {
-            error("Error in parameter list.");
-            return false;
-        }
-
-        if (!match(CLOSE_PARENTHESIS, node)){
-            error("Expected ')' after parameter list.");
-            return false;
-        }
-
-        if(!match(ARROW, node)){
-            error("Expected '->' after parameter list.");
-            return false;
-        }
-
-        if(!match(TYPE_INT, node)){
-            error("Expected return type 'int' after '->'.");
-            return false;
-        }
-
-        if(!block(node.insertChild(BLOCK))){
-            error("Error in function block.");
-            return false;
-        }
-
-        return true;
-    }
-
-    private boolean parameterList(SyntaxTree node) {
-        if(check(CLOSE_PARENTHESIS)) {
-            node.insertChild(EPSILON);
-            return true;
-        }
-
-        if (!parameter(node.insertChild(PARAMETER))) {
-            return false;
-        }
-
-        if(check(COMMA)) {
-            match(COMMA, node);
-            return parameterList(node);
-        }
-
-        return true;
-    }
-
-    private boolean parameter(SyntaxTree node) {
-        if(!match(IDENTIFIER, node)) {
-            error("Expected parameter name identifier.");
-            return false;
-        }
-
-        if(!match(COLON, node)) {
-            error("Expected ':' after parameter name.");
-            return false;
-        }
-
-        if(!match(TYPE_INT, node)) {
-            error("Expected parameter type 'int'.");
-            return false;
-        }
-
-        return true;
-    }
-
-    private boolean block(SyntaxTree node) {
-        if(!match(OPEN_BRACE, node)) {
-            error("Expected '{' at the beginning of block.");
-            return false;
-        }
-
-        if(!blockStatements(node)){
-            return false;
-        }
-
-        if(!match(CLOSE_BRACE, node)) {
-            error("Expected '}' at the end of block.");
-            return false;
-        }
-
-        return true;
-    }
-
-    private boolean blockStatements(SyntaxTree node) {
-        if(check(CLOSE_BRACE) || check(EOF_TOKEN)) {
-            return true;
-        }
-
-        if(!statement(node)){
-            return false;
-        }
-
-        return blockStatements(node);
-    }
-
-    private boolean ifStatement(SyntaxTree node) {
-        if(!match(IF, node)){
-            error("Expected 'if' keyword.");
-            return false;
-        }
-
-        if(!match(OPEN_PARENTHESIS, node)){
-            error("Expected '(' after 'if' keyword.");
-            return false;
-        }
-
-        if(!condition(node.insertChild(CONDITION))){
-            return false;
-        }
-
-        if(!match(CLOSE_PARENTHESIS, node)){
-            error("Expected ')' after condition.");
-            return false;
-        }
-
-        if(!block(node.insertChild(BLOCK))){
-            error("Expected block after 'if' condition.");
-            return false;
-        }
-
-        while(check(ELSE_IF)){
-            if(!elseIfStatement(node.insertChild(ELSE_IF_STATEMENT))){
-                return false;
-            }
-        }
-
-        if(check(ELSE)){
-            if(!elseStatement(node.insertChild(ELSE_STATEMENT))){
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private boolean elseIfStatement(SyntaxTree node) {
-        if(!match(ELSE_IF, node)){
-            error("Expected 'elseif' keyword.");
-            return false;
-        }
-
-        if(!match(OPEN_PARENTHESIS, node)){
-            error("Expected '(' after 'elseif' keyword.");
-            return false;
-        }
-
-        if(!condition(node.insertChild(CONDITION))){
-            return false;
-        }
-
-        if(!match(CLOSE_PARENTHESIS, node)){
-            error("Expected ')' after condition.");
-            return false;
-        }
-
-        if(!block(node.insertChild(BLOCK))){
-            error("Expected block after 'elseif' condition.");
-            return false;
-        }
-
-        return true;
-    }
-
-    private boolean elseStatement(SyntaxTree node) {
-        if(!match(ELSE, node)){
-            error("Expected 'else' keyword.");
-            return false;
-        }
-
-        if(!block(node.insertChild(BLOCK))){
-            error("Expected block after 'else' keyword.");
-            return false;
-        }
-
-        return true;
-    }
-
-    private boolean condition(SyntaxTree node) {
-        if(!expression(node.insertChild(EXPRESSION))) {
-            return false;
-        }
-
-        if(matchComparisonOperator(node)) {
-            if(!expression(node.insertChild(EXPRESSION))) {
-                return false;
-            }
-        } else {
-            error("Expected comparison operator in condition.");
-            return false;
-        }
-
-        return true;
-    }
-
-    private boolean matchComparisonOperator(SyntaxTree node) {
-        return switch(currentToken.getType()) {
-            case EQUAL -> match(EQUAL, node);
-            case NOT_EQUAL -> match(NOT_EQUAL, node);
-            case GREATER_THAN -> match(GREATER_THAN, node);
-            case LESS_THAN -> match(LESS_THAN, node);
-            case GREATER_EQUAL -> match(GREATER_EQUAL, node);
-            case LESS_EQUAL -> match(LESS_EQUAL, node);
-            default -> false; 
-        };
-    }
-
-    private boolean returnStatement(SyntaxTree node) {
-        if(!match(RETURN, node)) {
-            error("Expected 'return' keyword.");
-            return false;
-        }
-
-        if(!expression(node.insertChild(EXPRESSION))) {
-            return false;
-        }
-
-        return true;
-    }
-
-    private boolean expression(SyntaxTree node) {
-        if(!term(node.insertChild(TERM))) {
-            error("Expected numeric literal in expression.");
-            return false;
+        if (check(RETURN)) {
+            return parseReturnStatement(parent);
         }
         
-        if(!rightExpression(node.insertChild(RIGHT_EXPRESSION))){
-                return false;
+        SyntaxTree expr = parseExpression();
+        if (expr == null) return false;
+        parent.addChild(expr);
+        return true;
+    }
+
+    private boolean parseFunction(SyntaxTree parent) {
+        if (!expect(FN)) return false;
+
+        if (!check(IDENTIFIER)) {
+            error("Expected function name");
+            return false;
         }
+        String functionName = currentToken.getLexeme();
+        advance();
+
+        SyntaxTree funcNode = parent.addChild(FUNCTION)
+            .withAttribute("name", functionName);
+
+        if (!expect(OPEN_PARENTHESIS)) return false;
+
+        SyntaxTree params = funcNode.addChild(PARAMETER_LIST);
+        if (!parseParameterList(params)) return false;
+
+        if (!expect(CLOSE_PARENTHESIS)) return false;
+        if (!expect(ARROW)) return false;
+
+        if (!checkType()) {
+            error("Expected return type");
+            return false;
+        }
+        funcNode.withAttribute("returnType", currentToken.getLexeme());
+        advance();
+
+        SyntaxTree body = funcNode.addChild(BLOCK);
+        if (!parseBlock(body)) return false;
+
+        return true;
+    }
+
+    private boolean parseParameterList(SyntaxTree node) {
+        if (check(CLOSE_PARENTHESIS)) {
+            return true;
+        }
+
+        if (!parseParameter(node)) return false;
+
+        while (check(COMMA)) {
+            advance();
+            if (!parseParameter(node)) return false;
+        }
+
+        return true;
+    }
+
+    private boolean parseParameter(SyntaxTree parent) {
+        if (!check(IDENTIFIER)) {
+            error("Expected parameter name");
+            return false;
+        }
+        String paramName = currentToken.getLexeme();
+        advance();
+
+        if (!expect(COLON)) return false;
+
+        if (!checkType()) {
+            error("Expected parameter type");
+            return false;
+        }
+        String paramType = currentToken.getLexeme();
+        advance();
+
+        parent.addChild(PARAMETER)
+            .withAttribute("name", paramName)
+            .withAttribute("type", paramType);
+
+        return true;
+    }
+
+    private boolean parseBlock(SyntaxTree node) {
+        if (!expect(OPEN_BRACE)) return false;
+
+        while (!check(CLOSE_BRACE) && !check(EOF_TOKEN)) {
+            if (!parseStatement(node)) return false;
+        }
+
+        if (!expect(CLOSE_BRACE)) return false;
+        return true;
+    }
+
+    private boolean parseIfStatement(SyntaxTree parent) {
+        if (!expect(IF)) return false;
+
+        SyntaxTree ifNode = parent.addChild(IF);
+
+        if (!expect(OPEN_PARENTHESIS)) return false;
         
-        return true;
-    }
+        SyntaxTree condition = parseCondition();
+        if (condition == null) return false;
+        ifNode.addChild(condition);
 
-    private boolean rightExpression(SyntaxTree node) {
-        if (!check(PLUS) && !check(MINUS)) {
-            node.insertChild(EPSILON);
-            return true;
+        if (!expect(CLOSE_PARENTHESIS)) return false;
+
+        SyntaxTree thenBlock = ifNode.addChild(BLOCK);
+        if (!parseBlock(thenBlock)) return false;
+
+        while (check(ELSE_IF)) {
+            advance();
+            SyntaxTree elseIfNode = ifNode.addChild(ELSE_IF);
+
+            if (!expect(OPEN_PARENTHESIS)) return false;
+            
+            SyntaxTree elseIfCondition = parseCondition();
+            if (elseIfCondition == null) return false;
+            elseIfNode.addChild(elseIfCondition);
+
+            if (!expect(CLOSE_PARENTHESIS)) return false;
+
+            SyntaxTree elseIfBlock = elseIfNode.addChild(BLOCK);
+            if (!parseBlock(elseIfBlock)) return false;
         }
 
-        if(check(PLUS)) {
-            match(PLUS, node);
-        } else if (check(MINUS)) {
-            match(MINUS, node);
-        }
-
-        if(!term(node.insertChild(TERM))) {
-            error("Expected term after '+' or '-'.");
-            return false;
-        }
-
-        if(!rightExpression(node.insertChild(RIGHT_EXPRESSION))) {
-            return false;
-        }
-
-        return true;
-    }
-
-    private boolean term(SyntaxTree node) {
-        if(!factor(node.insertChild(FACTOR))) {
-            error("Expected numeric literal in term.");
-            return false;
-        }
-
-        if(!rightTerm(node.insertChild(RIGHT_TERM))) {
-            return false;
+        if (check(ELSE)) {
+            advance();
+            SyntaxTree elseBlock = ifNode.addChild(ELSE);
+            if (!parseBlock(elseBlock)) return false;
         }
 
         return true;
     }
 
-    private boolean rightTerm(SyntaxTree node) {
-        if (!check(MULTIPLY) && !check(DIVIDE)) {
-            node.insertChild(EPSILON);
-            return true;
-        }
+    private boolean parseWhileStatement(SyntaxTree parent) {
+        if (!expect(WHILE)) return false;
 
-        if(check(MULTIPLY)) {
-            match(MULTIPLY, node);
-        } else if (check(DIVIDE)) {
-            match(DIVIDE, node);
-        }
+        SyntaxTree whileNode = parent.addChild(WHILE);
 
-        if(!factor(node.insertChild(FACTOR))) {
-            error("Expected factor after '*' or '/'.");
-            return false;
-        }
+        if (!expect(OPEN_PARENTHESIS)) return false;
 
-        if(!rightTerm(node.insertChild(RIGHT_TERM))) {
-            return false;
-        }
+        SyntaxTree condition = parseCondition();
+        if (condition == null) return false;
+        whileNode.addChild(condition);
+
+        if (!expect(CLOSE_PARENTHESIS)) return false;
+
+        SyntaxTree body = whileNode.addChild(BLOCK);
+        if (!parseBlock(body)) return false;
 
         return true;
     }
 
-    private boolean factor(SyntaxTree node) {
-        if(check(OPEN_PARENTHESIS)) {
-            match(OPEN_PARENTHESIS, node);
+    private boolean parseReturnStatement(SyntaxTree parent) {
+        if (!expect(RETURN)) return false;
 
-            if(!expression(node.insertChild(EXPRESSION))) {
-                return false;
-            }
+        SyntaxTree returnNode = parent.addChild(RETURN);
 
-            if(!match(CLOSE_PARENTHESIS, node)) {
-                error("Expected ')' after expression.");
-                return false;
-            }
+        SyntaxTree expr = parseExpression();
+        if (expr == null) return false;
+        returnNode.addChild(expr);
 
-            return true;
+        return true;
+    }
+
+    private SyntaxTree parseCondition() {
+        SyntaxTree left = parseExpression();
+        if (left == null) return null;
+
+        if (!isComparisonOperator()) {
+            error("Expected comparison operator in condition");
+            return null;
+        }
+
+        byte opType = currentToken.getType();
+        String opSymbol = currentToken.getLexeme();
+        advance();
+
+        SyntaxTree right = parseExpression();
+        if (right == null) return null;
+
+        SyntaxTree condition = new SyntaxTree(CONDITION)
+            .withAttribute("operator", opSymbol);
+        condition.addChild(left);
+        condition.addChild(right);
+
+        return condition;
+    }
+
+    private SyntaxTree parseExpression() {
+        SyntaxTree left = parseTerm();
+        if (left == null) return null;
+
+        while (check(PLUS) || check(MINUS)) {
+            String op = currentToken.getLexeme();
+            advance();
+
+            SyntaxTree right = parseTerm();
+            if (right == null) return null;
+
+            SyntaxTree binOp = new SyntaxTree(EXPRESSION)
+                .withAttribute("operator", op);
+            binOp.addChild(left);
+            binOp.addChild(right);
+            left = binOp;
+        }
+
+        return left;
+    }
+
+    private SyntaxTree parseTerm() {
+        SyntaxTree left = parseFactor();
+        if (left == null) return null;
+
+        while (check(MULTIPLY) || check(DIVIDE)) {
+            String op = currentToken.getLexeme();
+            advance();
+
+            SyntaxTree right = parseFactor();
+            if (right == null) return null;
+
+            SyntaxTree binOp = new SyntaxTree(TERM)
+                .withAttribute("operator", op);
+            binOp.addChild(left);
+            binOp.addChild(right);
+            left = binOp;
+        }
+
+        return left;
+    }
+
+    private SyntaxTree parseFactor() {
+        if (check(OPEN_PARENTHESIS)) {
+            advance();
+            SyntaxTree expr = parseExpression();
+            if (expr == null) return null;
+            if (!expect(CLOSE_PARENTHESIS)) return null;
+            return expr;
         }
 
         if (check(NUMERIC)) {
-            match(NUMERIC, node);
-            return true;
+            SyntaxTree numNode = new SyntaxTree(NUMERIC, currentToken.getLexeme());
+            advance();
+            return numNode;
         }
 
-        if(check(IDENTIFIER)) {
-            if(lookAhead(OPEN_PARENTHESIS)) {
-                return functionCall(node.insertChild(FUNCTION_CALL));
+        if (check(IDENTIFIER)) {
+            String name = currentToken.getLexeme();
+            advance();
+
+            if (check(OPEN_PARENTHESIS)) {
+                return parseFunctionCall(name);
             } else {
-                match(IDENTIFIER, node);
-                return true;
+                // Variable reference
+                return new SyntaxTree(IDENTIFIER, name);
             }
         }
 
-        error("Expected numeric literal, identifier, or '(' in factor.");
-        return false;
+        error("Expected expression");
+        return null;
     }
 
-    private boolean functionCall(SyntaxTree node) {
-        if(!match(IDENTIFIER, node)) {
-            error("Expected function name identifier in function call.");
-            return false;
+    private SyntaxTree parseFunctionCall(String functionName) {
+        SyntaxTree callNode = new SyntaxTree(FUNCTION_CALL)
+            .withAttribute("name", functionName);
+
+        if (!expect(OPEN_PARENTHESIS)) return null;
+
+        if (!check(CLOSE_PARENTHESIS)) {
+            SyntaxTree arg = parseExpression();
+            if (arg == null) return null;
+            callNode.addChild(arg);
+
+            while (check(COMMA)) {
+                advance();
+                arg = parseExpression();
+                if (arg == null) return null;
+                callNode.addChild(arg);
+            }
         }
 
-        if(!match(OPEN_PARENTHESIS, node)) {
-            error("Expected '(' after function name in function call.");
-            return false;
-        }
-
-        if(!expressionList(node.insertChild(EXPRESSION_LIST))) {
-            return false;
-        }
-
-        if(!match(CLOSE_PARENTHESIS, node)) {
-            error("Expected ')' after expression list in function call.");
-            return false;
-        }
-
-        return true;
+        if (!expect(CLOSE_PARENTHESIS)) return null;
+        return callNode;
     }
 
-    private boolean expressionList(SyntaxTree node) {
-        if(check(CLOSE_PARENTHESIS)) {
-            node.insertChild(EPSILON);
-            return true;
-        }
-
-        if(!expression(node.insertChild(EXPRESSION))) {
-            return false;
-        }
-
-        if(check(COMMA)) {
-            match(COMMA, node);
-            return expressionList(node);
-        }
-
-        return true;
+    private boolean check(byte type) {
+        return currentToken.getType() == type;
     }
 
-    private boolean check(byte expectedType) {
-        return currentToken.getType() == expectedType;
+    private boolean checkType() {
+        return check(TYPE_INT) || check(TYPE_STRING) || check(TYPE_BOOL) || check(TYPE_VOID);
     }
 
-    private boolean lookAhead(byte expectedType) {
-        if(position + 1 >= tokens.size()) {
-            return false;
-        }
-        return tokens.get(position + 1).getType() == expectedType;
+    private boolean isComparisonOperator() {
+        byte t = currentToken.getType();
+        return t == EQUAL || t == NOT_EQUAL || 
+               t == GREATER_THAN || t == LESS_THAN || 
+               t == GREATER_EQUAL || t == LESS_EQUAL;
     }
 
-    private boolean match(byte expectedType, SyntaxTree node) {
-        System.out.printf("Matching token: expected %s, got %s\n", Token.getTokenName(expectedType), currentToken);
-
-        if(!check(expectedType)) {
-            return false;
-        }
-
-        node.insertChild(currentToken);
-
+    private void advance() {
         position++;
-        if(position < tokens.size()) {
+        if (position < tokens.size()) {
             currentToken = tokens.get(position);
         }
+    }
+
+    private boolean expect(byte type) {
+        if (!check(type)) {
+            error("Expected " + Token.getTokenName(type) + " but got " + currentToken.getTokenName());
+            return false;
+        }
+        advance();
         return true;
     }
 
     private void error(String message) {
-        System.err.printf("Parser error at line %d (position: %d) -- %s\n", currentToken.getLine(), currentToken.getPosition(), message);
+        System.err.printf("Parser error at line %d, pos %d: %s%n",
+            currentToken.getLine(), currentToken.getPosition(), message);
     }
-
 }

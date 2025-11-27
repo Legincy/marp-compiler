@@ -55,15 +55,15 @@ public class CodeGenerator implements ITokenWrapper {
         switch(type) {
             case PROGRAM -> generateProgram(node);
             case FUNCTION -> generateFunction(node);
-            case RETURN_STATEMENT -> generateReturnStatement(node);
-            case IF_STATEMENT -> generateIfStatement(node);
+            case RETURN -> generateReturnStatement(node);
+            case IF -> generateIfStatement(node);
             case EXPRESSION -> generateExpression(node);
             case TERM -> generateTerm(node);
             case FACTOR -> generateFactor(node);
             case FUNCTION_CALL -> generateFunctionCall(node);
             case CONDITION -> generateCondition(node);
             default -> {
-                for(SyntaxTree child: node.getChildNodes()){
+                for(SyntaxTree child: node.getChildren()){
                     generateNode(child);
                 }
             }
@@ -72,7 +72,7 @@ public class CodeGenerator implements ITokenWrapper {
     }
 
     private void generateProgram(SyntaxTree node) {
-        for(SyntaxTree child: node.getChildNodes()){
+        for(SyntaxTree child: node.getChildren()){
             generateNode(child);
         }
     }
@@ -82,9 +82,9 @@ public class CodeGenerator implements ITokenWrapper {
         List<String> functionParameters = new ArrayList<>();
         SyntaxTree blockNode = null;
     
-        for(SyntaxTree child: node.getChildNodes()){
+        for(SyntaxTree child: node.getChildren()){
             if(child.getType() == IDENTIFIER && functionName == null) {
-                functionName = child.getLexeme();
+                functionName = child.getValue();
             } else if(child.getType() == PARAMETER_LIST) {
                 extractParameters(child, functionParameters);
             } else if(child.getType() == BLOCK) {
@@ -124,11 +124,11 @@ public class CodeGenerator implements ITokenWrapper {
     }
 
     private void extractParameters(SyntaxTree node, List<String> parameters) {
-        for(SyntaxTree parameterChild : node.getChildNodes()) {
+        for(SyntaxTree parameterChild : node.getChildren()) {
             if(parameterChild.getType() == PARAMETER) {
-               for(SyntaxTree child : parameterChild.getChildNodes()) {
+               for(SyntaxTree child : parameterChild.getChildren()) {
                     if(child.getType() == IDENTIFIER) {
-                        parameters.add(child.getLexeme());
+                        parameters.add(child.getValue());
                         break;
                     }
                 }
@@ -137,7 +137,7 @@ public class CodeGenerator implements ITokenWrapper {
     }
 
     private void generateBlock(SyntaxTree node) {
-        for(SyntaxTree child: node.getChildNodes()){
+        for(SyntaxTree child: node.getChildren()){
             byte type = child.getType();
             if(type != OPEN_BRACE && type != CLOSE_BRACE) {
                 generateNode(child);
@@ -146,7 +146,7 @@ public class CodeGenerator implements ITokenWrapper {
     }
 
     private void generateReturnStatement(SyntaxTree node) {
-        for(SyntaxTree child: node.getChildNodes()){
+        for(SyntaxTree child: node.getChildren()){
             if(child.getType() == EXPRESSION) {
                 generateExpression(child);
                 break;
@@ -156,7 +156,7 @@ public class CodeGenerator implements ITokenWrapper {
     }
 
     private void generateIfStatement(SyntaxTree node) {
-        List<SyntaxTree> children = node.getChildNodes();
+        List<SyntaxTree> children = node.getChildren();
 
         String endLabel = newLabel("if_end");
         String nextLabel = newLabel("if_next");
@@ -196,9 +196,9 @@ public class CodeGenerator implements ITokenWrapper {
         while(i < children.size()) {
             SyntaxTree child = children.get(i);
 
-            if(child.getType() == ELSE_IF_STATEMENT) {
+            if(child.getType() == ELSE_IF) {
                 generateElseIfStatement(child, endJumps);
-            } else if(child.getType() == ELSE_STATEMENT) {
+            } else if(child.getType() == ELSE) {
                 generateElseStatement(node);
             }
             i++;
@@ -211,7 +211,7 @@ public class CodeGenerator implements ITokenWrapper {
     }
 
     private void generateElseIfStatement(SyntaxTree node, List<Integer> endJumps) {
-        List<SyntaxTree> children = node.getChildNodes();
+        List<SyntaxTree> children = node.getChildren();
 
         int i = 0;
         while(i < children.size() && children.get(i).getType() != CONDITION){
@@ -244,7 +244,7 @@ public class CodeGenerator implements ITokenWrapper {
     }
 
     private void generateElseStatement(SyntaxTree node) {
-        for(SyntaxTree child: node.getChildNodes()){
+        for(SyntaxTree child: node.getChildren()){
             if(child.getType() == BLOCK) {
                 generateBlock(child);
                 break;
@@ -253,7 +253,7 @@ public class CodeGenerator implements ITokenWrapper {
     }
 
     private void generateCondition(SyntaxTree node) {
-        List<SyntaxTree> children = node.getChildNodes();
+        List<SyntaxTree> children = node.getChildren();
 
         if(children.size() >= 1){
             generateExpression(children.get(0));
@@ -276,7 +276,7 @@ public class CodeGenerator implements ITokenWrapper {
     }
 
     private void generateExpression(SyntaxTree node) {
-        List<SyntaxTree> children = node.getChildNodes();
+        List<SyntaxTree> children = node.getChildren();
         
         for(SyntaxTree child: children){
             byte type = child.getType();
@@ -290,7 +290,7 @@ public class CodeGenerator implements ITokenWrapper {
     }
 
     private void generateRightExpression(SyntaxTree node) {
-        List<SyntaxTree> children = node.getChildNodes();
+        List<SyntaxTree> children = node.getChildren();
         OperationCode pendingOperation = null;
 
         for(SyntaxTree child: children){
@@ -313,7 +313,7 @@ public class CodeGenerator implements ITokenWrapper {
     }
 
     private void generateTerm(SyntaxTree node) {
-        List<SyntaxTree> children = node.getChildNodes();
+        List<SyntaxTree> children = node.getChildren();
 
         for(SyntaxTree child: children){
             byte type = child.getType();
@@ -328,7 +328,7 @@ public class CodeGenerator implements ITokenWrapper {
     }
 
     private void generateRightTerm(SyntaxTree node) {
-        List<SyntaxTree> children = node.getChildNodes();
+        List<SyntaxTree> children = node.getChildren();
         OperationCode pendingOperation = null;
 
         for(SyntaxTree child: children){
@@ -351,14 +351,14 @@ public class CodeGenerator implements ITokenWrapper {
     }
 
     private void generateFactor(SyntaxTree node) {
-        for(SyntaxTree child: node.getChildNodes()){
+        for(SyntaxTree child: node.getChildren()){
             byte type = child.getType();
 
            if(type == NUMERIC) {
-                int value = Integer.parseInt(child.getLexeme());
+                int value = Integer.parseInt(child.getValue());
                 emit(OperationCode.PUSH, value).withComment("factor::push_numeric::" + value);
             } else if(type == IDENTIFIER) {
-                String identifierName = child.getLexeme();
+                String identifierName = child.getValue();
                 if(variableOffsets.containsKey(identifierName)) {
                     int offset = variableOffsets.get(identifierName);
                     emit(OperationCode.LOAD, offset).withComment("factor::load_variable::" + identifierName);
@@ -378,9 +378,9 @@ public class CodeGenerator implements ITokenWrapper {
         String functionName = null;
         SyntaxTree expressionList = null;
 
-        for(SyntaxTree child: node.getChildNodes()){
+        for(SyntaxTree child: node.getChildren()){
             if(child.getType() == IDENTIFIER) {
-                functionName = child.getLexeme();
+                functionName = child.getValue();
             } else if(child.getType() == EXPRESSION_LIST) {
                 expressionList = child;
             }
@@ -393,7 +393,7 @@ public class CodeGenerator implements ITokenWrapper {
 
         int argumentCount = 0;
         if(expressionList != null) {
-            for(SyntaxTree child : expressionList.getChildNodes()){
+            for(SyntaxTree child : expressionList.getChildren()){
                 if(child.getType() == EXPRESSION) {
                     generateExpression(child);
                     argumentCount++;

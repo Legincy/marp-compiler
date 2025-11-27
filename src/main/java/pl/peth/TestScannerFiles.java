@@ -18,7 +18,8 @@ class TestScannerFiles implements ITokenWrapper{
                 "examples/scanner/multiply.mp",
                 "examples/scanner/divide.mp",
                 "examples/scanner/complex.mp",
-                "examples/scanner/condition.mp"
+                "examples/scanner/condition.mp",
+                "examples/scanner/loop.mp"
         };
 
         for (String filename : testFiles) {
