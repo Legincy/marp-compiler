@@ -23,7 +23,7 @@ public class Token implements ITokenWrapper {
     @Override
     public String toString() {
         String typeAsByte = String.format("%8s", Integer.toBinaryString(type & 0xFF)).replace(' ', '0');
-        return String.format("Token(type=BYTE(%s) [%s], lexeme='%s', line=%d, position=%d)", type, typeAsByte, lexeme, line, position);
+        return String.format("Token(type='%s' BYTE(%s) - [%s], lexeme='%s', line=%d, position=%d)", this.getTokenName(), type, typeAsByte, lexeme, line, position);
     }
 
     public String getTokenName() {
@@ -49,12 +49,16 @@ public class Token implements ITokenWrapper {
             //IIdentifierTokens
             case IDENTIFIER -> "IDENTIFIER";
             case TYPE_INT -> "TYPE_INT";
+            case TYPE_VOID -> "TYPE_VOID";
+            case TYPE_BOOL -> "TYPE_BOOL";
+            case TYPE_STRING -> "TYPE_STRING";
             //IKeywordTokens
             case FN -> "FN";
             case RETURN -> "RETURN";
             case IF -> "IF";
             case ELSE -> "ELSE";
             case ELSE_IF -> "ELSE_IF";
+            case WHILE -> "WHILE";
             //ILiteralTokens
             case NUMERIC -> "NUMERIC";
             //INonTerminalTokens
@@ -63,10 +67,6 @@ public class Token implements ITokenWrapper {
             case PARAMETER_LIST -> "PARAMETER_LIST";
             case PARAMETER -> "PARAMETER";
             case BLOCK -> "BLOCK";
-            case RETURN_STATEMENT -> "RETURN_STATEMENT";
-            case IF_STATEMENT -> "IF_STATEMENT";
-            case ELSE_IF_STATEMENT -> "ELSE_IF_STATEMENT";
-            case ELSE_STATEMENT -> "ELSE_STATEMENT";
             case CONDITION -> "CONDITION";
             //IOperatorTokens
             case PLUS -> "PLUS";
