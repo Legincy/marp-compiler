@@ -5,6 +5,8 @@ public enum OperationCode {
     PUSH,                    // Move a value onto the stack
     LOAD,                    // Load a value from a variable onto the stack
     STORE,                   // Store a value from the stack into a variable
+    GLOAD,                   // Load a value from a global variable onto the stack
+    GSTORE,                  // Store a value from the stack into a global variable
     POP,                     // Remove the top value from the stack
 
     // == Arithmetic Operations ==

@@ -45,7 +45,7 @@ public class Instruction {
 
     public boolean hasOperand() {
         return switch(opCode) {
-            case PUSH, LOAD, JMP, JZ, JNZ, CALL, ENTER, RET -> true;
+            case PUSH, LOAD, STORE, GLOAD, GSTORE, JMP, JZ, JNZ, CALL, ENTER, RET -> true;
             default -> false;
         };
     }

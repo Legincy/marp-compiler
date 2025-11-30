@@ -7,11 +7,13 @@ import pl.peth.generator.OperationCode;
 
 public class StackMachine {
     private static final int STACK_SIZE = 1024;
+    private static final int GLOBAL_BASE = 0;
 
     private final int[] stack;
     private int stackPointer;
     private int framePointer;
     private int programCounter;
+    private int globalCounter;
     private boolean isRunning;
     private boolean isDebugMode;
 
@@ -22,6 +24,7 @@ public class StackMachine {
         this.stackPointer = 0;
         this.framePointer = 0;
         this.programCounter = 0;
+        this.globalCounter = 0;
         this.isRunning = false;
         this.isDebugMode = false;
     }
@@ -37,21 +40,22 @@ public class StackMachine {
         this.framePointer = 0;
         this.isRunning = true;
 
-        if(isDebugMode) {
+        if(this.isDebugMode) {
             System.out.println("DEBUG::Starting Stack Machine");
+            System.out.println("DEBUG::Global variables: " + this.globalCounter);
         }
 
-        while (isRunning && programCounter < instructions.size()) {
-           Instruction instruction = instructions.get(programCounter);
+        while (this.isRunning && this.programCounter < instructions.size()) {
+           Instruction instruction = instructions.get(this.programCounter);
 
-           if(isDebugMode) {
+           if(this.isDebugMode) {
               printState(instruction);
            }
 
            executeInstruction(instruction);
         }
 
-        if(isDebugMode) {
+        if(this.isDebugMode) {
             System.out.println("DEBUG::Stack Machine halted");
             System.out.printf("SP: %d, FP: %d, PC: %d%n", stackPointer, framePointer, programCounter);
             if(stackPointer > 0) {
@@ -81,6 +85,16 @@ public class StackMachine {
                 stack[framePointer + operand] = value;
                 programCounter++;
             }
+            case GLOAD -> {
+                int value = stack[GLOBAL_BASE + operand];
+                push(value);
+                programCounter++;
+            }
+            case GSTORE -> {
+                int value = pop();
+                stack[GLOBAL_BASE + operand] = value;
+                programCounter++;
+            }
             case ADD -> {
                 int b = pop();
                 int a = pop();
@@ -97,7 +111,7 @@ public class StackMachine {
                 int b = pop();
                 int a = pop();
                 if(b == 0) {
-                    System.err.println("ERROR: Division by zero");
+                    error("ERROR: Division by zero");
                     isRunning = false;
                     return;
                 }else {
@@ -182,6 +196,7 @@ public class StackMachine {
                 stackPointer = framePointer;
                 framePointer = pop();
                 programCounter = pop();
+                stackPointer -= operand;
                 push(returnValue);
             }
             case ENTER -> {
@@ -190,6 +205,10 @@ public class StackMachine {
             }
             case LEAVE -> {
                 stackPointer = framePointer;
+                programCounter++;
+            }
+            case POP -> {
+                pop();
                 programCounter++;
             }
             case NOP -> {
@@ -203,9 +222,10 @@ public class StackMachine {
                     ;
                     System.out.println("OUTPUT: " + stack[stackPointer - 1]);
                 }
+                programCounter++;
             }
             default -> {
-                System.err.println("ERROR: Unknown operation code: " + opCode);
+                error("ERROR: Unknown operation code: " + opCode);
                 isRunning = false;
             }
         }
@@ -223,6 +243,7 @@ public class StackMachine {
         if(stackPointer <= 0) {
             error("ERROR: Stack underflow");
             isRunning = false;
+            return 0;
         }
         return stack[--stackPointer];
     }
@@ -231,6 +252,7 @@ public class StackMachine {
         if(stackPointer <= 0) {
             error("ERROR: Stack underflow on peek");
             isRunning = false;
+            return 0;
         }
         return stack[stackPointer - 1];
     }
@@ -243,7 +265,11 @@ public class StackMachine {
         int start = Math.max(0, stackPointer - 10);
         for (int i = start; i < stackPointer; i++) {
             if (i > start) System.out.print(", ");
-            System.out.print(stack[i]);
+            if(i < globalCounter) {
+                System.out.print("G:" + i + ":" + stack[i]);
+            }else{
+                System.out.print(stack[i]);
+            }
         }
         System.out.println("]");
     }
@@ -252,9 +278,17 @@ public class StackMachine {
         System.out.print("Stack (SP=" + stackPointer + "): [");
         for (int i = 0; i < stackPointer; i++) {
             if (i > 0) System.out.print(", ");
-            System.out.print(stack[i]);
+            if (i < globalCounter) {
+                System.out.print("G:" + i + ":" + stack[i]);
+            } else {
+                System.out.print(stack[i]);
+            }
         }
         System.out.println("]");
+    }
+
+    public void setGlobalVariableCounter(int count) {
+        this.globalCounter = count;
     }
 
     private void error(String message) {
