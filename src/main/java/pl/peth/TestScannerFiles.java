@@ -14,12 +14,13 @@ class TestScannerFiles implements ITokenWrapper{
         Instant start = Instant.now();
 
         String[] testFiles = {
-                "examples/scanner/add.mp",
-                "examples/scanner/multiply.mp",
-                "examples/scanner/divide.mp",
-                "examples/scanner/complex.mp",
-                "examples/scanner/condition.mp",
-                "examples/scanner/loop.mp"
+                "examples/add.mp",
+                "examples/multiply.mp",
+                "examples/divide.mp",
+                "examples/complex.mp",
+                "examples/condition.mp",
+                "examples/loop.mp",
+                "examples/variable.mp"
         };
 
         for (String filename : testFiles) {
