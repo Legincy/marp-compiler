@@ -69,7 +69,7 @@ public String toString() {
             case ELSE -> "ELSE";
             case ELSE_IF -> "ELSE_IF";
             case WHILE -> "WHILE";
-            case VARIABLE -> "VARIABLE";
+            case VAR -> "VAR";
             //ILiteralTokens
             case NUMERIC -> "NUMERIC";
             //INonTerminalTokens
@@ -80,7 +80,7 @@ public String toString() {
             case BLOCK -> "BLOCK";
             case CONDITION -> "CONDITION";
             case VARIABLE_DECLARATION -> "VARIABLE_DECLARATION";
-            case ASSIGTMENT -> "ASSIGTMENT";
+            case ASSIGNMENT -> "ASSIGNMENT";
             //IOperatorTokens
             case PLUS -> "PLUS";
             case MINUS -> "MINUS";

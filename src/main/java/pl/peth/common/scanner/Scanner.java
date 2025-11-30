@@ -207,7 +207,7 @@ public class Scanner implements ITokenWrapper {
     private byte checkKeyword(String lexeme) {
         return switch(lexeme) {
             case "fn" -> FN;
-            case "var" -> VARIABLE;
+            case "var" -> VAR;
             case "int" -> TYPE_INT;
             case "void" -> TYPE_VOID;
             case "bool" -> TYPE_BOOL;

@@ -56,7 +56,7 @@ public class Parser implements ITokenWrapper {
             return parseFunction(parent);
         }
 
-        if (check(VARIABLE)) {
+        if (check(VAR)) {
             return parseVariableDeclaration(parent);
         }
 
@@ -81,7 +81,7 @@ public class Parser implements ITokenWrapper {
     }
 
     private boolean parseVariableDeclaration(SyntaxTree parent) {
-        if (!expect(VARIABLE)) return false;
+        if (!expect(VAR)) return false;
 
         if (!check(IDENTIFIER)) {
             error("Expected variable name");
@@ -126,7 +126,7 @@ public class Parser implements ITokenWrapper {
 
         if (!expect(ASSIGN)) return false;
 
-        SyntaxTree assignNode = parent.addChild(ASSIGTMENT).withAttribute("name", variableName);
+        SyntaxTree assignNode = parent.addChild(ASSIGNMENT).withAttribute("name", variableName);
         SyntaxTree expressionNode = parseExpression();
 
         if(expressionNode == null) return false;
