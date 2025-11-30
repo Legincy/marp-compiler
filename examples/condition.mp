@@ -7,3 +7,7 @@ fn max(a: int, b: int) -> int {
         return b
     }
 }
+
+fn main() -> int {
+    return max(10, 5)
+}

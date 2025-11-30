@@ -54,10 +54,17 @@ public class CodeGenerator implements ITokenWrapper {
         int mainCallIndex = instructions.size() - 1;
         emit(OperationCode.HALT).withComment("call::halt");
 
-        generateNode(syntaxTree);
+        for (SyntaxTree child : syntaxTree.getChildren()) {
+            if (child.getType() == FUNCTION) {
+                generateFunction(child);
+            }
+        }
 
-        if(functionTable.containsKey("main")) {
-            instructions.set(mainCallIndex, new Instruction(OperationCode.CALL, functionTable.get("main")).withComment("call::main"));
+        if (functionTable.containsKey("main")) {
+            int mainAddress = functionTable.get("main");
+            instructions.set(mainCallIndex, new Instruction(OperationCode.CALL, mainAddress).withComment("call::main"));
+        } else {
+            error("No main function found!");
         }
 
         return instructions;
