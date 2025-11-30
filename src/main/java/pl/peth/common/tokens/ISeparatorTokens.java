@@ -8,4 +8,5 @@ interface ISeparatorTokens {
     byte OPEN_BRACE = 54;
     byte CLOSE_BRACE = 55;
     byte ARROW = 56;
+    byte ASSIGN = 57;
 }

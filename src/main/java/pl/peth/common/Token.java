@@ -21,10 +21,20 @@ public class Token implements ITokenWrapper {
     }
 
     @Override
-    public String toString() {
-        String typeAsByte = String.format("%8s", Integer.toBinaryString(type & 0xFF)).replace(' ', '0');
-        return String.format("Token(type='%s' BYTE(%s) - [%s], lexeme='%s', line=%d, position=%d)", this.getTokenName(), type, typeAsByte, lexeme, line, position);
-    }
+public String toString() {
+    String typeAsByte = String.format("%8s", Integer.toBinaryString(type & 0xFF))
+            .replace(' ', '0');
+
+    return String.format(
+        "Token(type='%-20s', byte=%-3d [%s], lexeme='%-10s', line=%d, position=%d)",
+        this.getTokenName(),
+        type,
+        typeAsByte,
+        lexeme,
+        line,
+        position
+    );
+}
 
     public String getTokenName() {
         return getTokenName(type);
@@ -59,6 +69,7 @@ public class Token implements ITokenWrapper {
             case ELSE -> "ELSE";
             case ELSE_IF -> "ELSE_IF";
             case WHILE -> "WHILE";
+            case VARIABLE -> "VARIABLE";
             //ILiteralTokens
             case NUMERIC -> "NUMERIC";
             //INonTerminalTokens
@@ -68,6 +79,8 @@ public class Token implements ITokenWrapper {
             case PARAMETER -> "PARAMETER";
             case BLOCK -> "BLOCK";
             case CONDITION -> "CONDITION";
+            case VARIABLE_DECLARATION -> "VARIABLE_DECLARATION";
+            case ASSIGTMENT -> "ASSIGTMENT";
             //IOperatorTokens
             case PLUS -> "PLUS";
             case MINUS -> "MINUS";
@@ -87,6 +100,7 @@ public class Token implements ITokenWrapper {
             case OPEN_BRACE -> "OPEN_BRACE";
             case CLOSE_BRACE -> "CLOSE_BRACE";
             case ARROW -> "ARROW";
+            case ASSIGN -> "ASSIGN";
             default -> "UNKNOWN_TOKEN";
         };
     }

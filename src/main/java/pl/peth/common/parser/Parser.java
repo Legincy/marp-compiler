@@ -55,6 +55,11 @@ public class Parser implements ITokenWrapper {
         if (check(FN)) {
             return parseFunction(parent);
         }
+
+        if (check(VARIABLE)) {
+            return parseVariableDeclaration(parent);
+        }
+
         if (check(IF)) {
             return parseIfStatement(parent);
         }
@@ -64,10 +69,69 @@ public class Parser implements ITokenWrapper {
         if (check(RETURN)) {
             return parseReturnStatement(parent);
         }
-        
+
+        if (check(IDENTIFIER) && lookAhead(1) == ASSIGN) {
+            return parseAssignment(parent);
+        }
+
         SyntaxTree expr = parseExpression();
         if (expr == null) return false;
         parent.addChild(expr);
+        return true;
+    }
+
+    private boolean parseVariableDeclaration(SyntaxTree parent) {
+        if (!expect(VARIABLE)) return false;
+
+        if (!check(IDENTIFIER)) {
+            error("Expected variable name");
+            return false;
+        }
+
+        String variableName = currentToken.getLexeme();
+        advance();
+
+        if (!expect(COLON)) return false;
+
+        if (!checkType()) {
+            error("Expected variable type");
+            return false;
+        }
+
+        String variableType = currentToken.getLexeme();
+        advance();
+
+        SyntaxTree node = parent.addChild(VARIABLE_DECLARATION)
+            .withAttribute("name", variableName)
+            .withAttribute("type", variableType);
+
+        if (check(ASSIGN)) {
+            advance();
+            SyntaxTree expr = parseExpression();
+            if (expr == null) return false;
+            node.addChild(expr);
+        }
+
+        return true;
+    }
+
+    private boolean parseAssignment(SyntaxTree parent) {
+        if (!check(IDENTIFIER)) {
+            error("Expected variable name for assignment");
+            return false;
+        }
+
+        String variableName = currentToken.getLexeme();
+        advance();
+
+        if (!expect(ASSIGN)) return false;
+
+        SyntaxTree assignNode = parent.addChild(ASSIGTMENT).withAttribute("name", variableName);
+        SyntaxTree expressionNode = parseExpression();
+
+        if(expressionNode == null) return false;
+        assignNode.addChild(expressionNode);
+
         return true;
     }
 
@@ -315,7 +379,6 @@ public class Parser implements ITokenWrapper {
             if (check(OPEN_PARENTHESIS)) {
                 return parseFunctionCall(name);
             } else {
-                // Variable reference
                 return new SyntaxTree(IDENTIFIER, name);
             }
         }
@@ -362,6 +425,14 @@ public class Parser implements ITokenWrapper {
                t == GREATER_EQUAL || t == LESS_EQUAL;
     }
 
+    private byte lookAhead(int offset) {
+        int index = position + offset;
+        if (index >= tokens.size()) {
+            return EOF_TOKEN;
+        }
+        return tokens.get(index).getType();
+    }
+
     private void advance() {
         position++;
         if (position < tokens.size()) {
@@ -379,7 +450,7 @@ public class Parser implements ITokenWrapper {
     }
 
     private void error(String message) {
-        System.err.printf("Parser error at line %d, pos %d: %s%n",
+        System.err.printf("Parser error at [line: %d, position: %d] - %s%n",
             currentToken.getLine(), currentToken.getPosition(), message);
     }
 }

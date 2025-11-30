@@ -6,5 +6,7 @@ interface INonTerminalTokens {
     byte PARAMETER = 102;
     byte BLOCK = 103;
     byte FUNCTION = 105;
+    byte VARIABLE_DECLARATION = 106;
+    byte ASSIGTMENT = 107;
     byte CONDITION = 109;
 }

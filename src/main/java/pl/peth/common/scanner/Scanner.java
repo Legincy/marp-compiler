@@ -175,8 +175,8 @@ public class Scanner implements ITokenWrapper {
                     position++;
                     return new Token(EQUAL, "==", startLine, position);
                 }
-                error("Unexpected '=' - did you mean '=='?");
-                return null;
+                
+                return new Token(ASSIGN, "=", startLine, position);
             case '!':
                 position++;
                 if (charAtPosition() == '=') {
@@ -207,6 +207,7 @@ public class Scanner implements ITokenWrapper {
     private byte checkKeyword(String lexeme) {
         return switch(lexeme) {
             case "fn" -> FN;
+            case "var" -> VARIABLE;
             case "int" -> TYPE_INT;
             case "void" -> TYPE_VOID;
             case "bool" -> TYPE_BOOL;
