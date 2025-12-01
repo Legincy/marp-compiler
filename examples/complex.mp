@@ -20,7 +20,11 @@ fn nested(a: int, b: int) -> int {
 
 fn main() -> int {
     var x: int = formula(2, 3, 4)
+    print("hello world")
+    print(x)
     var y: int = calculate(2, 3, 4)
+    print(x)
     var z: int = nested(10, 2)
+    print(x)
     return x + y + z
 }
