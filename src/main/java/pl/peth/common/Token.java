@@ -70,8 +70,10 @@ public String toString() {
             case ELSE_IF -> "ELSE_IF";
             case WHILE -> "WHILE";
             case VAR -> "VAR";
+            case PRINT -> "PRINT";
             //ILiteralTokens
             case NUMERIC -> "NUMERIC";
+            case STRING -> "STRING";
             //INonTerminalTokens
             case PROGRAM -> "PROGRAM";
             case FUNCTION -> "FUNCTION";

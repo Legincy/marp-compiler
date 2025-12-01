@@ -67,6 +67,11 @@ public class Scanner implements ITokenWrapper {
                     skipComment();
                     continue;
                 }
+                
+                if (currentChar == '"') {
+                    tokens.add(scanString());
+                    continue;
+                }
 
                 if (Character.isDigit(currentChar)) {
                     tokens.add(scanNumber());
@@ -89,6 +94,41 @@ public class Scanner implements ITokenWrapper {
             error("Scanning failed: " + ex.getMessage());
             return false;
         }
+    }
+
+    private Token scanString() {
+        int startLine = line;
+        position++; 
+        StringBuilder sb = new StringBuilder();
+
+        while(position < input.length() && charAtPosition() != '"') {
+            char c = charAtPosition();
+            if(c == '\\' && position + 1 < input.length()) {
+                position++;
+                char next = charAtPosition();
+                switch (next) {
+                    case 'n' -> sb.append('\n');
+                    case 't' -> sb.append('\t');
+                    case '"' -> sb.append('"');
+                    case '\\' -> sb.append('\\');
+                    default -> sb.append(next);
+                }
+            } else if (c == '\n') {
+                error("Unterminated string literal");
+                return new Token(STRING, sb.toString(), startLine, position);
+            } else {
+                sb.append(c);
+            }
+            position++;
+        }
+        
+        if (position >= input.length()) {
+            error("Unterminated string literal");
+        } else {
+            position++;
+        }
+        
+        return new Token(STRING, sb.toString(), startLine, position);
     }
 
     public List<Token> getTokens() {
@@ -217,6 +257,7 @@ public class Scanner implements ITokenWrapper {
             case "else" -> ELSE;
             case "elseif" -> ELSE_IF;
             case "while" -> WHILE;
+            case "print" -> PRINT;
             default -> IDENTIFIER;
         };
     }

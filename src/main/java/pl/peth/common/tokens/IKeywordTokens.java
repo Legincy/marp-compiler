@@ -8,4 +8,5 @@ interface IKeywordTokens {
     byte ELSE = 34;
     byte ELSE_IF = 35;
     byte VAR = 36;
+    byte PRINT = 37;
 }

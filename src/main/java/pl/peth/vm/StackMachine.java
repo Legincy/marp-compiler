@@ -10,14 +10,13 @@ public class StackMachine {
     private static final int GLOBAL_BASE = 0;
 
     private final int[] stack;
+    private List<String> stringTable;
     private int stackPointer;
     private int framePointer;
     private int programCounter;
     private int globalCounter;
     private boolean isRunning;
     private boolean isDebugMode;
-
-    private List<Instruction> instructions;
 
     public StackMachine() {
         this.stack = new int[STACK_SIZE];
@@ -34,7 +33,6 @@ public class StackMachine {
     }
 
     public int execute(List<Instruction> instructions) {
-        this.instructions = instructions;
         this.programCounter = 0;
         this.stackPointer = 0;
         this.framePointer = 0;
@@ -224,6 +222,15 @@ public class StackMachine {
                 }
                 programCounter++;
             }
+            case PRINT_STR -> {
+                int index = pop();
+                if (stringTable != null && index >= 0 && index < stringTable.size()) {
+                    System.out.println("OUTPUT: " + stringTable.get(index));
+                } else {
+                    error("ERROR: Invalid string index: " + index);
+                }
+                programCounter++;
+            }
             default -> {
                 error("ERROR: Unknown operation code: " + opCode);
                 isRunning = false;
@@ -289,6 +296,10 @@ public class StackMachine {
 
     public void setGlobalVariableCounter(int count) {
         this.globalCounter = count;
+    }
+
+    public void setStringTable(List<String> table) {
+        this.stringTable = table;
     }
 
     private void error(String message) {

@@ -56,6 +56,10 @@ public class Parser implements ITokenWrapper {
             return parseFunction(parent);
         }
 
+        if (check(PRINT)) {
+            return parsePrint(parent);
+        }
+
         if (check(VAR)) {
             return parseVariableDeclaration(parent);
         }
@@ -77,6 +81,21 @@ public class Parser implements ITokenWrapper {
         SyntaxTree expr = parseExpression();
         if (expr == null) return false;
         parent.addChild(expr);
+        return true;
+    }
+
+    private boolean parsePrint(SyntaxTree parent) {
+        if (!expect(PRINT)) return false;
+        if (!expect(OPEN_PARENTHESIS)) return false;
+
+        SyntaxTree printNode = parent.addChild(PRINT);
+
+        SyntaxTree expressionNode = parseExpression();
+        if (expressionNode == null) return false;
+        printNode.addChild(expressionNode);
+
+        if (!expect(CLOSE_PARENTHESIS)) return false;
+
         return true;
     }
 
@@ -324,7 +343,10 @@ public class Parser implements ITokenWrapper {
             advance();
 
             SyntaxTree right = parseTerm();
-            if (right == null) return null;
+            if (right == null) {
+                error("Expected expression after '" + op + "'");
+                return null;
+            }
 
             SyntaxTree binOp = new SyntaxTree(EXPRESSION)
                 .withAttribute("operator", op);
@@ -345,7 +367,10 @@ public class Parser implements ITokenWrapper {
             advance();
 
             SyntaxTree right = parseFactor();
-            if (right == null) return null;
+            if (right == null) {
+                error("Expected expression after '" + op + "'");
+                return null;
+            }
 
             SyntaxTree binOp = new SyntaxTree(TERM)
                 .withAttribute("operator", op);
@@ -372,6 +397,12 @@ public class Parser implements ITokenWrapper {
             return numNode;
         }
 
+        if(check(STRING)) {
+            SyntaxTree strNode = new SyntaxTree(STRING, currentToken.getLexeme());
+            advance();
+            return strNode;
+        }
+
         if (check(IDENTIFIER)) {
             String name = currentToken.getLexeme();
             advance();
@@ -383,8 +414,20 @@ public class Parser implements ITokenWrapper {
             }
         }
 
+        if (isStatementStart()) {
+            return null;
+        }
+
         error("Expected expression");
         return null;
+    }
+
+    private boolean isStatementStart() {
+        byte type = currentToken.getType();
+        return switch (type) {
+            case FN, PRINT, VAR, IF, WHILE, RETURN, CLOSE_BRACE, EOF_TOKEN -> true;
+            default -> false;
+        };
     }
 
     private SyntaxTree parseFunctionCall(String functionName) {

@@ -38,7 +38,8 @@ public enum OperationCode {
     // == Other Operations ==
     NOP,                     // No operation
     HALT,                    // Stop execution
-    PRINT                    // Print top value of the stack
+    PRINT,                   // Print top value of the stack
+    PRINT_STR                // Print string from string table
 
 
     

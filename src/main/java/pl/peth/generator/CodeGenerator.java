@@ -13,6 +13,7 @@ public class CodeGenerator implements ITokenWrapper {
     private final Map<String, Integer> functionTable;
     private final Map<String, Integer> localVariableOffsets;
     private final Map<String, Integer> globalVariableOffsets;
+    private final List<String> stringTable;
 
     private int currentOffset;
     private int labelCounter;
@@ -27,6 +28,7 @@ public class CodeGenerator implements ITokenWrapper {
         this.functionTable = new HashMap<>();
         this.localVariableOffsets = new HashMap<>();
         this.globalVariableOffsets = new HashMap<>();
+        this.stringTable = new ArrayList<>();
         this.currentOffset = 0;
         this.labelCounter = 0;
         this.currentFunction = null;
@@ -117,6 +119,12 @@ public class CodeGenerator implements ITokenWrapper {
             case IF -> generateIf(node);
             case WHILE -> generateWhile(node);
             case EXPRESSION -> generateExpression(node);
+            case STRING -> {
+                String strValue = node.getValue();
+                int strIndex = stringTable.size();
+                stringTable.add(strValue);
+                emit(OperationCode.PUSH, strIndex).withComment("push::string::index::" + strIndex);
+            }
             case TERM -> generateTerm(node);
             case FACTOR -> generateFactor(node);
             case FUNCTION_CALL -> generateFunctionCall(node);
@@ -141,6 +149,21 @@ public class CodeGenerator implements ITokenWrapper {
             case VARIABLE_DECLARATION -> {
                 if(this.inScope) {
                     generateVariableDeclaration(node);
+                }
+            }
+            case PRINT -> {
+                SyntaxTree child = node.getChild(0);
+                if (child != null && child.getType() == STRING) {
+                    // String-Literal: Index pushen und PRINT_STR
+                    String value = child.getValue();
+                    int index = stringTable.size();
+                    stringTable.add(value);
+                    emit(OperationCode.PUSH, index).withComment("push::string_index::" + index);
+                    emit(OperationCode.PRINT_STR).withComment("print_str");
+                } else {
+                    // Numerischer Ausdruck
+                    generateNode(child);
+                    emit(OperationCode.PRINT).withComment("print");
                 }
             }
             default -> {
@@ -635,6 +658,10 @@ public class CodeGenerator implements ITokenWrapper {
 
     public int getGlobalVariableCounter() {
         return globalVariableCounter;
+    }
+
+    public List<String> getStringTable() {
+        return stringTable;
     }
 
     private void error(String message) {
